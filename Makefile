@@ -4,13 +4,20 @@ ifdef update
   u=-u
 endif
 
-lint:
+deps:
+	dep ensure
+
+setup:
+	go get ${u} github.com/golang/dep/cmd/dep
+	go get ${u} gopkg.in/alecthomas/gometalinter.v2
+
+lint: deps
 	gometalinter
 
-test:
+test: deps
 	go test ./...
 
 circleci:
-	circleci build -e GITHUB_TOKEN=$GITHUB_TOKEN
+	circleci build
 
-.PHONY: lint test circleci
+.PHONY: deps setup lint test circleci
