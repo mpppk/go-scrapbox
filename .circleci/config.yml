@@ -1,0 +1,14 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: mpppk/gored
+    working_directory: /go/src/github.com/mpppk/go-scrapbox
+    steps:
+      - checkout
+      - run: make test -f Makefile
+workflows:
+  version: 2
+  all:
+    jobs:
+      - build
