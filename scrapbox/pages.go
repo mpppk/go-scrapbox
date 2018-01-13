@@ -7,6 +7,8 @@ import (
 	"image"
 	"net/http"
 	"net/url"
+
+	"github.com/pkg/errors"
 )
 
 const apiEndpoint = "/api/pages"
@@ -66,15 +68,17 @@ type PageListByProjectOptions struct {
 
 // ListByRepo lists the pages for the specified project.
 func (s *PagesService) ListByProject(ctx context.Context, project string, opt *PageListByProjectOptions) ([]*Page, *http.Response, error) {
-	req, err := s.client.NewRequest("GET", getPagesListByProjectEndpoint(project, opt), nil)
+	endpoint := getPagesListByProjectEndpoint(project, opt)
+	req, err := s.client.NewRequest("GET", endpoint, nil)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "failed to create http request for PagesService.ListByProject")
 	}
 
 	var pagesRes pageListByProjectResponse
 	resp, err := s.client.Do(ctx, req, &pagesRes)
 	if err != nil {
-		return nil, resp, err
+		errMsg := fmt.Sprintf("failed to request to %s for PagesService.ListByProject", req.URL.String())
+		return nil, resp, errors.Wrap(err, errMsg)
 	}
 
 	var pages []*Page
@@ -91,13 +95,14 @@ func (s *PagesService) ListByProject(ctx context.Context, project string, opt *P
 func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *http.Response, error) {
 	req, err := s.client.NewRequest("GET", getPagesGetEndpoint(project, title), nil)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "failed to create http request for PagesService.Get")
 	}
 
 	var page Page
 	resp, err := s.client.Do(ctx, req, &page)
 	if err != nil {
-		return nil, resp, err
+		errMsg := fmt.Sprintf("failed to request to %s for PagesService.Get", req.URL.String())
+		return nil, resp, errors.Wrap(err, errMsg)
 	}
 
 	return &page, resp, nil
@@ -105,19 +110,29 @@ func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *
 
 // Get a single text of page.
 func (s *PagesService) GetText(ctx context.Context, project, title string) (string, *http.Response, error) {
-	buffer, resp, err := s.requestAndDoWithBuffer(ctx, getPagesGetTextEndpoint(project, title))
-	return buffer.String(), resp, err
+	endpoint := getPagesGetTextEndpoint(project, title)
+	buffer, resp, err := s.requestAndDoWithBuffer(ctx, endpoint)
+	if err != nil {
+		errMsg := fmt.Sprintf("failed to request for PagesService.GetText. endpoint: %s", endpoint)
+		return buffer.String(), resp, errors.Wrap(err, errMsg)
+	}
+	return buffer.String(), resp, nil
 }
 
 // Get a single icon of page.
 func (s *PagesService) GetIcon(ctx context.Context, project, title string) (*image.Image, string, *http.Response, error) {
-	fmt.Println(getPagesGetIconEndpoint(project, title))
-	buffer, resp, err := s.requestAndDoWithBuffer(ctx, getPagesGetIconEndpoint(project, title))
+	endpoint := getPagesGetIconEndpoint(project, title)
+	buffer, resp, err := s.requestAndDoWithBuffer(ctx, endpoint)
 	if err != nil {
-		return nil, "", nil, err
+		errMsg := fmt.Sprintf("failed to request for PagesService.GetIcon. endpoint: %s", endpoint)
+		return nil, "", nil, errors.Wrap(err, errMsg)
 	}
+
 	icon, ext, err := image.Decode(buffer)
-	return &icon, ext, resp, err
+	if err != nil {
+		return &icon, ext, resp, errors.Wrap(err, "failed to decode icon")
+	}
+	return &icon, ext, resp, nil
 }
 
 func (s *PagesService) requestAndDoWithBuffer(ctx context.Context, endpoint string) (*bytes.Buffer, *http.Response, error) {
@@ -127,7 +142,12 @@ func (s *PagesService) requestAndDoWithBuffer(ctx context.Context, endpoint stri
 	}
 	buffer := new(bytes.Buffer)
 	resp, err := s.client.Do(ctx, req, buffer)
-	return buffer, resp, err
+	if err != nil {
+		errMsg := fmt.Sprintf("failed to request to %s for PagesService", req.URL.String())
+		return buffer, resp, errors.Wrap(err, errMsg)
+	}
+
+	return buffer, resp, nil
 }
 
 func generateListByProjectQuery(opt *PageListByProjectOptions) string {

@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 const defaultBaseURL = "https://scrapbox.io/"
@@ -50,7 +52,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	}
 	u, err := c.BaseURL.Parse(urlStr)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("failed to parse URL for http request. BaseURL: %s, urlStr: %s", c.BaseURL, urlStr)
+		return nil, errors.Wrap(err, errMsg)
 	}
 
 	var buf io.ReadWriter
@@ -60,13 +63,14 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		enc.SetEscapeHTML(false)
 		err := enc.Encode(body)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err,
+				"failed to encode body given as argument of scrapbox.Client.NewRequest")
 		}
 	}
 
 	req, err := http.NewRequest(method, u.String(), buf)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create new http request")
 	}
 
 	if body != nil {
@@ -94,7 +98,8 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 			return nil, ctx.Err()
 		default:
 		}
-		return nil, err
+		errMsg := fmt.Sprintf("failed to http request to %s in scrapbox.Client.Do", req.URL.String())
+		return nil, errors.Wrap(err, errMsg)
 	}
 
 	defer func() {
@@ -114,7 +119,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 		}
 	}
 
-	return resp, err
+	return nil, errors.Wrap(err, "failed to decode http response body to json")
 }
 
 func withContext(ctx context.Context, req *http.Request) *http.Request {
