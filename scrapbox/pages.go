@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type service struct {
@@ -36,6 +37,8 @@ type Page struct {
 }
 
 type PageListByProjectOptions struct {
+	Skip  int
+	Limit int
 }
 
 type Icon struct {
@@ -46,7 +49,8 @@ type Icon struct {
 //}
 
 func (s *PagesService) ListByProject(ctx context.Context, project string, opt *PageListByProjectOptions) ([]*Page, *http.Response, error) {
-	req, err := s.client.NewRequest("GET", fmt.Sprintf("/api/pages/%s", project), nil) // TODO fix urlStr
+	query := generateListByProjectQuery(opt)
+	req, err := s.client.NewRequest("GET", fmt.Sprintf("/api/pages/%s?%s", project, query), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -58,6 +62,20 @@ func (s *PagesService) ListByProject(ctx context.Context, project string, opt *P
 	}
 
 	return pagesRes.Pages, resp, nil
+}
+
+func generateListByProjectQuery(opt *PageListByProjectOptions) string {
+	values := url.Values{}
+	if opt != nil {
+		if opt.Skip != 0 {
+			values.Add("skip", fmt.Sprint(opt.Skip))
+		}
+
+		if opt.Limit != 0 {
+			values.Add("limit", fmt.Sprint(opt.Limit))
+		}
+	}
+	return values.Encode()
 }
 
 //func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *http.Response, error) {
