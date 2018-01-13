@@ -66,8 +66,7 @@ type PageListByProjectOptions struct {
 
 // ListByRepo lists the pages for the specified project.
 func (s *PagesService) ListByProject(ctx context.Context, project string, opt *PageListByProjectOptions) ([]*Page, *http.Response, error) {
-	query := generateListByProjectQuery(opt)
-	req, err := s.client.NewRequest("GET", fmt.Sprintf("/api/pages/%s?%s", project, query), nil)
+	req, err := s.client.NewRequest("GET", getPagesListByProjectEndpoint(project, opt), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -90,7 +89,7 @@ func (s *PagesService) ListByProject(ctx context.Context, project string, opt *P
 
 // Get a single page.
 func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *http.Response, error) {
-	req, err := s.client.NewRequest("GET", fmt.Sprintf("%s/%s/%s", apiEndpoint, project, title), nil)
+	req, err := s.client.NewRequest("GET", getPagesGetEndpoint(project, title), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -106,13 +105,14 @@ func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *
 
 // Get a single text of page.
 func (s *PagesService) GetText(ctx context.Context, project, title string) (string, *http.Response, error) {
-	buffer, resp, err := s.requestAndDoWithBuffer(ctx, fmt.Sprintf("%s/%s/%s/text", apiEndpoint, project, title))
+	buffer, resp, err := s.requestAndDoWithBuffer(ctx, getPagesGetTextEndpoint(project, title))
 	return buffer.String(), resp, err
 }
 
 // Get a single icon of page.
 func (s *PagesService) GetIcon(ctx context.Context, project, title string) (*image.Image, string, *http.Response, error) {
-	buffer, resp, err := s.requestAndDoWithBuffer(ctx, fmt.Sprintf("%s/%s/%s/icon", apiEndpoint, project, title))
+	fmt.Println(getPagesGetIconEndpoint(project, title))
+	buffer, resp, err := s.requestAndDoWithBuffer(ctx, getPagesGetIconEndpoint(project, title))
 	if err != nil {
 		return nil, "", nil, err
 	}
@@ -142,4 +142,24 @@ func generateListByProjectQuery(opt *PageListByProjectOptions) string {
 		}
 	}
 	return values.Encode()
+}
+
+func getPagesListByProjectEndpoint(project string, opt *PageListByProjectOptions) string {
+	query := generateListByProjectQuery(opt)
+	escapedProject := url.PathEscape(project)
+	return fmt.Sprintf("%s/%s?%s", apiEndpoint, escapedProject, query)
+}
+
+func getPagesGetEndpoint(project, title string) string {
+	escapedProject := url.PathEscape(project)
+	escapedTitle := url.PathEscape(title)
+	return fmt.Sprintf("%s/%s/%s", apiEndpoint, escapedProject, escapedTitle)
+}
+
+func getPagesGetTextEndpoint(project, title string) string {
+	return getPagesGetEndpoint(project, title) + "/text"
+}
+
+func getPagesGetIconEndpoint(project, title string) string {
+	return getPagesGetEndpoint(project, title) + "/icon"
 }
