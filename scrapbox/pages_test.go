@@ -8,33 +8,33 @@ import (
 
 func TestGenerateListByProjectQuery(t *testing.T) {
 	cases := []struct {
-		opt            *PageListByProjectOptions
-		expectedQuerys []string
+		opt             *PageListByProjectOptions
+		expectedQueries []string
 	}{
 		{
-			opt:            &PageListByProjectOptions{},
-			expectedQuerys: []string{""},
+			opt:             &PageListByProjectOptions{},
+			expectedQueries: []string{""},
 		},
 		{
 			opt: &PageListByProjectOptions{
 				Skip:  0,
 				Limit: 100,
 			},
-			expectedQuerys: []string{"limit=100"},
+			expectedQueries: []string{"limit=100"},
 		},
 		{
 			opt: &PageListByProjectOptions{
 				Skip:  1,
 				Limit: 0,
 			},
-			expectedQuerys: []string{"skip=1"},
+			expectedQueries: []string{"skip=1"},
 		},
 		{
 			opt: &PageListByProjectOptions{
 				Skip:  1,
 				Limit: 100,
 			},
-			expectedQuerys: []string{"skip=1", "limit=100"},
+			expectedQueries: []string{"skip=1", "limit=100"},
 		},
 	}
 
@@ -52,9 +52,9 @@ func TestGenerateListByProjectQuery(t *testing.T) {
 		optStr := fmt.Sprintf("%#v", c.opt)
 		queries := strings.Split(queriesStr, "&")
 
-		for _, expectedQuery := range c.expectedQuerys {
+		for _, expectedQuery := range c.expectedQueries {
 			if !findQuery(expectedQuery, queries) {
-				t.Errorf("generateListByProjectQuery(%q) == %q, want %q", optStr, queriesStr, c.expectedQuerys)
+				t.Errorf("generateListByProjectQuery(%q) == %q, want %q", optStr, queriesStr, c.expectedQueries)
 			}
 		}
 	}
