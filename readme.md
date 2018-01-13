@@ -2,7 +2,7 @@
 golang Client for Scrapbox
 
 [![GoDoc](https://godoc.org/github.com/mpppk/go-scrapbox/scrapbox?status.svg)](http://godoc.org/github.com/mpppk/go-scrapbox/scrapbox)
-[![CircleCI](https://circleci.com/gh/mpppk/go-scrapbox.svg?style=svg)](https://circleci.com/gh/mpppk/go-scrapbox)
+[![CircleCI](https://circleci.com/gh/mpppk/go-scrapbox/tree/master.svg?style=svg)](https://circleci.com/gh/mpppk/go-scrapbox/tree/master)
 [![codebeat badge](https://codebeat.co/badges/8cdde201-641d-4055-90f6-228a867a51b3)](https://codebeat.co/projects/github-com-mpppk-go-scrapbox-initial)
 
 # Usage
