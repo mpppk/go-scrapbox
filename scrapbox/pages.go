@@ -1,6 +1,7 @@
 package scrapbox
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -98,9 +99,15 @@ func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *
 	return &page, resp, nil
 }
 
-//func (s *PagesService) GetText(ctx context.Context, project, title string) (string, *http.Response, error) {
-//
-//}
+func (s *PagesService) GetText(ctx context.Context, project, title string) (string, *http.Response, error) {
+	req, err := s.client.NewRequest("GET", fmt.Sprintf("/api/pages/%s/%s/text", project, title), nil)
+	if err != nil {
+		return "", nil, err
+	}
+	buffer := new(bytes.Buffer)
+	resp, err := s.client.Do(ctx, req, buffer)
+	return buffer.String(), resp, err
+}
 
 //func (s *PagesService) GetIcon(ctx context.Context, project, title string) (*Icon, *http.Response, error) {
 //

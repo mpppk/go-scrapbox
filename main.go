@@ -23,7 +23,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println(*page)
+
+	text, _, err := client.Pages.GetText(context.Background(), "niboshi", "go-scrapbox")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(text)
 
 }
