@@ -17,7 +17,19 @@ type PageListByProjectResponse struct {
 	Skip  int
 	Limit int
 	Count int
-	Pages []*Page
+	Pages []*PageWithUserId
+}
+
+type User struct {
+	Id          string
+	Name        string
+	DisplayName string
+	Photo       string
+}
+
+type PageWithUserId struct {
+	Page
+	UserId string `json:"user"`
 }
 
 type Page struct {
@@ -25,7 +37,7 @@ type Page struct {
 	Title        string
 	Image        string
 	Descriptions []string
-	User         string
+	User         *User
 	Pin          int64
 	Views        int
 	Point        int
@@ -44,7 +56,7 @@ type PageListByProjectOptions struct {
 type Icon struct {
 }
 
-//func (s *PagesService) Create(ctx context.Context, project string) (*Page, *http.Response, error) {
+//func (s *PagesService) Create(ctx context.Context, project string) (*PageWithUserId, *http.Response, error) {
 //
 //}
 
@@ -61,8 +73,38 @@ func (s *PagesService) ListByProject(ctx context.Context, project string, opt *P
 		return nil, resp, err
 	}
 
-	return pagesRes.Pages, resp, nil
+	var pages []*Page
+	for _, pageSummary := range pagesRes.Pages {
+		page := &pageSummary.Page
+		page.User = &User{Id: pageSummary.UserId}
+		pages = append(pages, page)
+	}
+
+	return pages, resp, nil
 }
+
+func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *http.Response, error) {
+	req, err := s.client.NewRequest("GET", fmt.Sprintf("/api/pages/%s/%s", project, title), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var page Page
+	resp, err := s.client.Do(ctx, req, &page)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &page, resp, nil
+}
+
+//func (s *PagesService) GetText(ctx context.Context, project, title string) (string, *http.Response, error) {
+//
+//}
+
+//func (s *PagesService) GetIcon(ctx context.Context, project, title string) (*Icon, *http.Response, error) {
+//
+//}
 
 func generateListByProjectQuery(opt *PageListByProjectOptions) string {
 	values := url.Values{}
@@ -77,11 +119,3 @@ func generateListByProjectQuery(opt *PageListByProjectOptions) string {
 	}
 	return values.Encode()
 }
-
-//func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *http.Response, error) {
-//
-//}
-//
-//func (s *PagesService) GetIcon(ctx context.Context, project, title string) (*Icon, *http.Response, error) {
-//
-//}

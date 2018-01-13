@@ -18,4 +18,12 @@ func main() {
 	for _, page := range pages {
 		fmt.Println(*page)
 	}
+
+	page, _, err := client.Pages.Get(context.Background(), "niboshi", "go-scrapbox")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(*page)
+
 }
