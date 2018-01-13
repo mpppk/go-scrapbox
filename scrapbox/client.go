@@ -14,6 +14,7 @@ import (
 
 const defaultBaseURL = "https://scrapbox.io/"
 
+// A Client manages communication with the Scrapbox API.
 type Client struct {
 	client  *http.Client
 	common  service
@@ -21,6 +22,8 @@ type Client struct {
 	Pages   *PagesService
 }
 
+// NewClient returns a new Scrapbox API client.
+// If a nil httpClient is provided, http.DefaultClient will be used.
 func NewClient(httpClient *http.Client) *Client {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
