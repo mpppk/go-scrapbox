@@ -9,6 +9,8 @@ import (
 	"net/url"
 )
 
+const apiEndpoint = "/api/pages"
+
 type service struct {
 	client *Client
 }
@@ -82,7 +84,7 @@ func (s *PagesService) ListByProject(ctx context.Context, project string, opt *P
 }
 
 func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *http.Response, error) {
-	req, err := s.client.NewRequest("GET", fmt.Sprintf("/api/pages/%s/%s", project, title), nil)
+	req, err := s.client.NewRequest("GET", fmt.Sprintf("%s/%s/%s", apiEndpoint, project, title), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -97,12 +99,12 @@ func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *
 }
 
 func (s *PagesService) GetText(ctx context.Context, project, title string) (string, *http.Response, error) {
-	buffer, resp, err := s.requestAndDoWithBuffer(ctx, fmt.Sprintf("/api/pages/%s/%s/text", project, title))
+	buffer, resp, err := s.requestAndDoWithBuffer(ctx, fmt.Sprintf("%s/%s/%s/text", apiEndpoint, project, title))
 	return buffer.String(), resp, err
 }
 
 func (s *PagesService) GetIcon(ctx context.Context, project, title string) (*image.Image, string, *http.Response, error) {
-	buffer, resp, err := s.requestAndDoWithBuffer(ctx, fmt.Sprintf("/api/pages/%s/%s/icon", project, title))
+	buffer, resp, err := s.requestAndDoWithBuffer(ctx, fmt.Sprintf("%s/%s/%s/icon", apiEndpoint, project, title))
 	if err != nil {
 		return nil, "", nil, err
 	}
