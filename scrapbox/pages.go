@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"image"
 	"net/http"
 	"net/url"
 )
@@ -57,10 +58,6 @@ type PageListByProjectOptions struct {
 type Icon struct {
 }
 
-//func (s *PagesService) Create(ctx context.Context, project string) (*PageWithUserId, *http.Response, error) {
-//
-//}
-
 func (s *PagesService) ListByProject(ctx context.Context, project string, opt *PageListByProjectOptions) ([]*Page, *http.Response, error) {
 	query := generateListByProjectQuery(opt)
 	req, err := s.client.NewRequest("GET", fmt.Sprintf("/api/pages/%s?%s", project, query), nil)
@@ -100,18 +97,28 @@ func (s *PagesService) Get(ctx context.Context, project, title string) (*Page, *
 }
 
 func (s *PagesService) GetText(ctx context.Context, project, title string) (string, *http.Response, error) {
-	req, err := s.client.NewRequest("GET", fmt.Sprintf("/api/pages/%s/%s/text", project, title), nil)
-	if err != nil {
-		return "", nil, err
-	}
-	buffer := new(bytes.Buffer)
-	resp, err := s.client.Do(ctx, req, buffer)
+	buffer, resp, err := s.requestAndDoWithBuffer(ctx, fmt.Sprintf("/api/pages/%s/%s/text", project, title))
 	return buffer.String(), resp, err
 }
 
-//func (s *PagesService) GetIcon(ctx context.Context, project, title string) (*Icon, *http.Response, error) {
-//
-//}
+func (s *PagesService) GetIcon(ctx context.Context, project, title string) (*image.Image, string, *http.Response, error) {
+	buffer, resp, err := s.requestAndDoWithBuffer(ctx, fmt.Sprintf("/api/pages/%s/%s/icon", project, title))
+	if err != nil {
+		return nil, "", nil, err
+	}
+	icon, ext, err := image.Decode(buffer)
+	return &icon, ext, resp, err
+}
+
+func (s *PagesService) requestAndDoWithBuffer(ctx context.Context, endpoint string) (*bytes.Buffer, *http.Response, error) {
+	req, err := s.client.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	buffer := new(bytes.Buffer)
+	resp, err := s.client.Do(ctx, req, buffer)
+	return buffer, resp, err
+}
 
 func generateListByProjectQuery(opt *PageListByProjectOptions) string {
 	values := url.Values{}

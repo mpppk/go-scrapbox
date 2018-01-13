@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"image/jpeg"
+	"os"
 
 	"github.com/mpppk/go-scrapbox/scrapbox"
 )
@@ -32,4 +34,15 @@ func main() {
 
 	fmt.Println(text)
 
+	icon, ext, _, err := client.Pages.GetIcon(context.Background(), "niboshi", "niboshi%2Fmpppk")
+	if err != nil {
+		panic(err)
+	}
+
+	file, _ := os.Create("icon." + ext)
+	defer file.Close()
+
+	if err := jpeg.Encode(file, *icon, &jpeg.Options{Quality: 100}); err != nil {
+		panic(err)
+	}
 }
